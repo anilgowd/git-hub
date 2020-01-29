@@ -1,0 +1,5 @@
+- hosts: new
+  become: yes
+  tasks:
+    - name: internal file copy
+      copy: src=/home/ansible/apache-maven-3.5.2-bin.tar.gz dest=/home/ansible/test/ remote_src=yes force=yes directory_mode=yes owner=ansible group=ansible

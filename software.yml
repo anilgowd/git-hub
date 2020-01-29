@@ -1,0 +1,17 @@
+- hosts: new
+  become: yes
+  tasks:
+    - name: installing some softwares
+      apt: name={{item}} update_cache=yes
+      with_items:
+               - tree
+               - rar
+               - zip
+               - unzip
+               - openjdk-8-jdk
+               - maven
+               - docker
+               - ansible
+               - mysql-server
+               
+

@@ -1,0 +1,28 @@
+- hosts: new
+  become: yes
+  tasks:
+    - name: installing tree
+      apt: name=tree
+    - name: creating group
+      group: name=ansible
+    - name: creating user
+      user: name=ansible group=ansible
+    - name: copying file
+      copy: src=/root/ansible/test1.txt dest=/home/ansible/
+    - name: installing zip
+      apt: name={{item}}
+      with_items:
+                   - zip
+                   - rar
+    - name: installing maven
+      get_url: url=http://www-eu.apache.org/dist/maven/maven-3/3.5.2/binaries/apache-maven-3.5.2-bin.tar.gz dest=/home/ansible/ owner=ansible group=ansible
+    - name: unzip maven
+      unarchive: src=/home/ansible/apache-maven-3.5.2-bin.tar.gz dest=/home/ansible/ owner=ansible group=ansible copy=no
+    - name: creating directory
+      file: path=/home/ansible/test state=directory owner=ansible group=ansible
+    - name: creating file
+      file: path=/home/ansible/test/text.txt state=touch
+    - name: updateing
+      apt: update_cache=yes
+    - name: internal file copy
+      copy: src=/home/ansible/apache-maven-3.5.2-bin.tar.gz dest=/home/ansible/test/ remote_src=yes force=yes directory_mode=yes owner=ansible group=ansible 

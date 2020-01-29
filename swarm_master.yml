@@ -1,0 +1,48 @@
+---
+  - name: Init Swarm Master
+    hosts: localhost
+    gather_facts: False
+    become: yes
+    vars:
+     content: " "
+    tasks:
+#    - name: Modify journald file
+#      copy: src= /etc/systemd/journald.conf dest= /etc/systemd/journald.conf force=yes directory_mode=yes
+    - name: Copy using the 'content' for inline data
+      copy:
+      content: '# This file was moved to /etc/other.conf'
+      dest: /etc/systemd/journald.conf
+    
+    - name: Rebooting After editing journald file
+      systemd:
+       name: systemd-journald
+       state: restarted
+
+    - name: restart docker
+      service: 
+       name: docker
+       state: restarted  
+
+    - name: Get "docker info"
+      command: docker info
+      register: docker_info
+      changed_when: false
+
+    - name: Swarm Init
+      command: docker swarm init --advertise-addr {{ inventory_hostname }}
+
+    - name: Get Worker Token
+      command: docker swarm join-token worker -q
+      register: worker_token
+
+    - name: Show Worker Token
+      debug: var=worker_token.stdout
+
+    - name: Master Token
+      command: docker swarm join-token manager -q
+      register: master_token
+
+    - name: Show Master Token
+      debug: var=master_token.stdout
+
+  

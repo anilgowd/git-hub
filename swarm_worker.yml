@@ -1,0 +1,55 @@
+- name: Join Swarm Cluster
+    hosts: workers
+    gather_facts: False
+    vars:
+      token: "{{ hostvars[groups['masters'][0]]['worker_token']['stdout'] }}"
+      master: "{{ hostvars[groups['masters'][0]]['inventory_hostname'] }}"
+    tasks:
+      - name: Join Swarm Cluster as a Worker
+        command: docker swarm join --token {{ token }} {{ master }}:2377
+        register: worker
+
+      - name: Show Results
+        debug: var=worker.stdout
+
+      - name: Show Errors
+        debug: var=worker.stderr
+
+      - name: Docker network creation
+        command: |
+         docker network create --driver overlay --subnet 10.1.0.0/16 --gateway 10.1.0.1 proxy
+         docker network create --driver overlay --subnet 10.2.0.0/16 --gateway 10.2.0.1 backend
+        register: docker_swarm_network
+        failed_when: docker_swarm_network.rc == 2
+        changed_when: false
+      
+      - name: Show Results
+        debug: var=docker_swarm_network.stdout
+
+      - name: Show Errors
+        debug: var=docker_swarm_network.stderr
+
+      - name: Create sa-ansible Group
+        group:
+        name: sa-ansible
+        state: present
+
+      - name: Create sa-ansible User
+        user:
+        name: sa-ansible
+        password: P@ssw0rd
+        groups: sa-ansible,centos,docker
+ 
+      - name: Create directory private
+        file:
+        path: /home/sa-ansible/private
+        state: directory
+        mode: 0755
+
+   - name: Copy nginx Certificate
+     copy:
+       src: /home/sa-ansible/private/server.pem
+       dest: /home/sa-ansible/private/server.pem
+       owner: root
+       group: root
+       mode: 0644
